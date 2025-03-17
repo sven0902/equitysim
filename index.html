@@ -25,6 +25,7 @@
             text-align: center;
             width: 90%;
             max-width: 900px;
+            padding-top: 60px; /* Added padding on top */
         }
 
         h1 {
@@ -183,14 +184,14 @@
                 data: {
                     labels: Array.from({ length: trades + 1 }, (_, i) => i),
                     datasets: [
-                        // Meerdere equity curves voor elke simulatie
+                        // Meerdere equity curves voor elke simulatie met willekeurige kleuren
                         ...allEquityCurves.map((curve, index) => ({
                             label: `Simulatie ${index + 1}`,
                             data: curve,
-                            borderColor: `rgba(255, 99, 132, 0.8)`,
-                            backgroundColor: 'rgba(255, 99, 132, 0.3)',
-                            fill: true,
-                            borderWidth: 1,
+                            borderColor: `hsl(${Math.random() * 360}, 100%, 70%)`, // Willekeurige kleur
+                            backgroundColor: 'transparent', // Geen invulling aan de onderkant
+                            fill: false,
+                            borderWidth: 2,
                             pointRadius: 0
                         })),
                         // Gemiddelde equity curve
@@ -198,8 +199,8 @@
                             label: 'Gemiddelde Equity Curve',
                             data: avgEquityCurve,
                             borderColor: '#d4af37',
-                            backgroundColor: 'rgba(212, 175, 55, 0.3)',
-                            fill: true,
+                            backgroundColor: 'transparent',
+                            fill: false,
                             borderWidth: 2,
                             pointRadius: 0
                         }

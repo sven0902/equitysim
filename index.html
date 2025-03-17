@@ -16,7 +16,6 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
         }
 
         .container {
@@ -29,7 +28,7 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            max-width: 1000px; /* Max breedte ingesteld op 1000px */
+            max-width: 90vw; /* Verhoogd naar 90% van de schermbreedte */
             padding-top: 60px;
             gap: 30px;
             box-sizing: border-box;
@@ -37,7 +36,8 @@
 
         .left-side {
             width: 100%;
-            margin-bottom: 20px;
+            max-width: 500px; /* Beperk de breedte van het formulier */
+            margin-bottom: 20px; /* Ruimte tussen formulier en grafiek */
         }
 
         h1 {
@@ -84,12 +84,13 @@
 
         .stats {
             text-align: left;
-            font-size: 14px;
+            font-size: 14px; /* Kleinere tekst voor statistieken */
             margin-top: 15px;
             padding: 10px;
             background-color: #333;
             border-radius: 8px;
             width: 100%;
+            max-width: 500px;
             margin-top: 20px;
         }
 
@@ -98,11 +99,9 @@
             height: 400px;
         }
 
-        /* Zorg ervoor dat de container zich aanpast op kleinere schermen */
-        @media screen and (max-width: 1000px) {
+        @media screen and (max-width: 768px) {
             .container {
-                width: 95%;
-                padding: 20px;
+                padding: 10px;  /* Verkleint de padding op kleinere schermen */
             }
         }
     </style>
@@ -149,8 +148,9 @@
             let maxDrawdown = 0;
             let maxLosingStreak = 0;
             let maxWinningStreak = 0;
-            let minEquity = startBalance;
-            let maxEquity = startBalance;
+            let minEquity = Infinity;
+            let maxEquity = -Infinity;
+            let biggestDrawdown = 0;
 
             // Simulaties uitvoeren
             for (let i = 0; i < simulations; i++) {
@@ -187,11 +187,10 @@
                     maxLosingStreakInSim = Math.max(maxLosingStreakInSim, currentLosingStreak);
                     maxWinningStreakInSim = Math.max(maxWinningStreakInSim, currentWinningStreak);
 
-                    // Track min/max equity
-                    minEquity = Math.min(minEquity, equity);
-                    maxEquity = Math.max(maxEquity, equity);
-
                     equityCurve.push(equity); // Voeg de nieuwe equity toe aan de curve
+                    minEquity = Math.min(minEquity, equity); // Track de laagste equity
+                    maxEquity = Math.max(maxEquity, equity); // Track de hoogste equity
+                    biggestDrawdown = Math.max(biggestDrawdown, drawdown); // Track de grootste drawdown
                 }
 
                 allEquityCurves.push(equityCurve);
@@ -228,7 +227,7 @@
                             label: `Simulatie ${index + 1}`,
                             data: curve,
                             borderColor: `hsl(${Math.random() * 360}, 100%, 70%)`, // Willekeurige kleur
-                            backgroundColor: 'transparent', // Geen invulling aan de onderkant
+                            backgroundColor: 'transparent',
                             fill: false,
                             borderWidth: 2,
                             pointRadius: 0
@@ -259,7 +258,7 @@
                                 display: true,
                                 text: 'Account Waarde'
                             },
-                            suggestedMin: 0 // Zorg ervoor dat de y-as begint vanaf 0
+                            suggestedMin: 0
                         }
                     }
                 }
@@ -273,7 +272,7 @@
                 <strong>Maximale Winreeks:</strong> ${maxWinningStreak} trades<br>
                 <strong>Min Equity:</strong> €${minEquity.toFixed(2)}<br>
                 <strong>Max Equity:</strong> €${maxEquity.toFixed(2)}<br>
-                <strong>Grootste Max Drawdown:</strong> €${maxDrawdown.toFixed(2)}<br>
+                <strong>Biggest Drawdown:</strong> €${biggestDrawdown.toFixed(2)}
             `;
         }
     </script>

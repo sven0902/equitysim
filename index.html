@@ -23,7 +23,8 @@
             padding: 40px;
             border-radius: 15px;
             text-align: center;
-            width: 350px;
+            width: 90%;
+            max-width: 900px;
         }
 
         h1 {
@@ -78,6 +79,9 @@
 <body>
     <div class="container">
         <h1>Equity Simulator</h1>
+        <label for="startBalance">Startbalans:</label>
+        <input type="number" id="startBalance" value="100" min="1">
+        
         <label for="trades">Aantal Trades:</label>
         <input type="number" id="trades" value="100" min="1">
         
@@ -93,37 +97,72 @@
         <button onclick="runSimulation()">Simuleer</button>
 
         <div class="result" id="result"></div>
+        <div class="result" id="stats"></div>
         <canvas id="equityCurve"></canvas>
     </div>
 
     <script>
+        let chart; // Variabele om de grafiek op te slaan
+
         function runSimulation() {
+            const startBalance = parseFloat(document.getElementById('startBalance').value);
             const trades = parseInt(document.getElementById('trades').value);
             const simulations = parseInt(document.getElementById('simulations').value);
             const winrate = parseFloat(document.getElementById('winrate').value) / 100;
             const riskReward = parseFloat(document.getElementById('riskReward').value);
-            
+
             let allEquityCurves = [];
-            
+            let maxDrawdown = 0;
+            let maxLosingStreak = 0;
+            let maxWinningStreak = 0;
+
             // Simulaties uitvoeren
             for (let i = 0; i < simulations; i++) {
-                let equity = 100; // Start met een accountwaarde van 100
+                let equity = startBalance;
                 let equityCurve = [equity]; // Begin met de initiële waarde van het account
-                
+                let currentLosingStreak = 0;
+                let currentWinningStreak = 0;
+                let maxLosingStreakInSim = 0;
+                let maxWinningStreakInSim = 0;
+                let peakEquity = equity;
+                let drawdown = 0;
+
                 for (let j = 0; j < trades; j++) {
                     const win = Math.random() < winrate; // Winst of verlies
                     if (win) {
                         equity += equity * (riskReward / 100); // Winst
+                        currentWinningStreak++;
+                        currentLosingStreak = 0;
                     } else {
                         equity -= equity * (1 / 100); // Verlies
+                        currentLosingStreak++;
+                        currentWinningStreak = 0;
                     }
+
+                    // Track de maximale drawdown
+                    if (equity > peakEquity) {
+                        peakEquity = equity;
+                        drawdown = 0;
+                    } else {
+                        drawdown = Math.max(drawdown, peakEquity - equity);
+                    }
+
+                    // Track de maximale verliesreeks en winstreeks
+                    maxLosingStreakInSim = Math.max(maxLosingStreakInSim, currentLosingStreak);
+                    maxWinningStreakInSim = Math.max(maxWinningStreakInSim, currentWinningStreak);
+
                     equityCurve.push(equity); // Voeg de nieuwe equity toe aan de curve
                 }
 
                 allEquityCurves.push(equityCurve);
+
+                // Bijwerken van de algemene statistieken
+                maxDrawdown = Math.max(maxDrawdown, drawdown);
+                maxLosingStreak = Math.max(maxLosingStreak, maxLosingStreakInSim);
+                maxWinningStreak = Math.max(maxWinningStreak, maxWinningStreakInSim);
             }
-            
-            // Toon de gemiddelde equity curve
+
+            // Bereken de gemiddelde equity curve
             let avgEquityCurve = Array(trades + 1).fill(0);
             for (let i = 0; i < allEquityCurves.length; i++) {
                 for (let j = 0; j < allEquityCurves[i].length; j++) {
@@ -132,21 +171,39 @@
             }
             avgEquityCurve = avgEquityCurve.map(value => value / simulations); // Gemiddelde berekenen
 
-            // Toon de grafiek met de gemiddelde equity curve
+            // Als er een grafiek bestaat, vernietig deze eerst voordat je een nieuwe maakt
+            if (chart) {
+                chart.destroy();
+            }
+
+            // Toon de nieuwe grafiek met meerdere equity curves en de gemiddelde curve
             const ctx = document.getElementById('equityCurve').getContext('2d');
-            new Chart(ctx, {
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: Array.from({ length: trades + 1 }, (_, i) => i),
-                    datasets: [{
-                        label: 'Gemiddelde Equity Curve',
-                        data: avgEquityCurve,
-                        borderColor: '#d4af37',
-                        backgroundColor: 'rgba(212, 175, 55, 0.3)',
-                        fill: true,
-                        borderWidth: 2,
-                        pointRadius: 0
-                    }]
+                    datasets: [
+                        // Meerdere equity curves voor elke simulatie
+                        ...allEquityCurves.map((curve, index) => ({
+                            label: `Simulatie ${index + 1}`,
+                            data: curve,
+                            borderColor: `rgba(255, 99, 132, 0.8)`,
+                            backgroundColor: 'rgba(255, 99, 132, 0.3)',
+                            fill: true,
+                            borderWidth: 1,
+                            pointRadius: 0
+                        })),
+                        // Gemiddelde equity curve
+                        {
+                            label: 'Gemiddelde Equity Curve',
+                            data: avgEquityCurve,
+                            borderColor: '#d4af37',
+                            backgroundColor: 'rgba(212, 175, 55, 0.3)',
+                            fill: true,
+                            borderWidth: 2,
+                            pointRadius: 0
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -167,7 +224,13 @@
                 }
             });
 
-            document.getElementById('result').textContent = 'Simulatie afgerond, kijk naar de grafiek voor de equity curve!';
+            // Toon de statistieken
+            document.getElementById('result').textContent = 'Simulatie afgerond, kijk naar de grafiek voor de equity curves!';
+            document.getElementById('stats').innerHTML = `
+                <strong>Maximale Drawdown:</strong> €${maxDrawdown.toFixed(2)}<br>
+                <strong>Maximale Verliesreeks:</strong> ${maxLosingStreak} trades<br>
+                <strong>Maximale Winreeks:</strong> ${maxWinningStreak} trades
+            `;
         }
     </script>
 </body>

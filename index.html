@@ -24,17 +24,19 @@
             border-radius: 15px;
             text-align: center;
             display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: flex-start;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             width: 90%;
             max-width: 1200px;
-            padding-top: 80px; /* Meer padding aan de bovenkant */
+            padding-top: 60px; /* Minder padding aan de bovenkant */
+            gap: 30px; /* Meer ruimte tussen de elementen */
         }
 
         .left-side {
-            width: 40%;
-            padding-right: 20px;
+            width: 100%;
+            max-width: 500px; /* Beperk de breedte van het formulier */
+            margin-bottom: 20px; /* Ruimte tussen formulier en grafiek */
         }
 
         h1 {
@@ -83,10 +85,16 @@
             text-align: left;
             font-size: 14px; /* Kleinere tekst voor statistieken */
             margin-top: 15px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
         }
 
         #equityCurve {
-            width: 60%;
+            width: 100%;
             height: 400px;
         }
     </style>
@@ -236,15 +244,16 @@
                             title: {
                                 display: true,
                                 text: 'Account Waarde'
-                            }
+                            },
+                            suggestedMin: 0 // Zorg ervoor dat de y-as begint vanaf 0
                         }
                     }
                 }
             });
 
-            // Toon de statistieken
+            // Toon de statistieken onder de grafiek
             document.getElementById('result').textContent = 'Simulatie afgerond, kijk naar de grafiek voor de equity curves!';
-            document.getElementById('stats').innerHTML = `
+            document.getElementById('stats').innerHTML = ` 
                 <strong>Maximale Drawdown:</strong> €${maxDrawdown.toFixed(2)}<br>
                 <strong>Maximale Verliesreeks:</strong> ${maxLosingStreak} trades<br>
                 <strong>Maximale Winreeks:</strong> ${maxWinningStreak} trades

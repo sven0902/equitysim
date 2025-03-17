@@ -16,6 +16,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: auto;
         }
 
         .container {
@@ -25,13 +26,15 @@
             text-align: center;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             width: 100%;
             max-width: 90vw; /* Verhoogd naar 90% van de schermbreedte */
-            padding-top: 60px;
+            padding-top: 20px; /* Verminderde padding bovenin */
             gap: 30px;
             box-sizing: border-box;
+            max-height: 90vh; /* Beperk de hoogte van de container zodat het niet uit het scherm schaalt */
+            overflow-y: auto; /* Zorgt ervoor dat de container scrollt als de inhoud te groot is */
         }
 
         .left-side {

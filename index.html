@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Equity Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             background-color: #161616;
@@ -66,6 +67,12 @@
             margin-top: 20px;
             font-size: 18px;
         }
+
+        #equityCurve {
+            margin-top: 40px;
+            width: 100%;
+            height: 400px;
+        }
     </style>
 </head>
 <body>
@@ -86,6 +93,7 @@
         <button onclick="runSimulation()">Simuleer</button>
 
         <div class="result" id="result"></div>
+        <canvas id="equityCurve"></canvas>
     </div>
 
     <script>
@@ -94,25 +102,72 @@
             const simulations = parseInt(document.getElementById('simulations').value);
             const winrate = parseFloat(document.getElementById('winrate').value) / 100;
             const riskReward = parseFloat(document.getElementById('riskReward').value);
-            let totalProfit = 0;
-
+            
+            let allEquityCurves = [];
+            
             // Simulaties uitvoeren
             for (let i = 0; i < simulations; i++) {
-                let profit = 0;
+                let equity = 100; // Start met een accountwaarde van 100
+                let equityCurve = [equity]; // Begin met de initiële waarde van het account
+                
                 for (let j = 0; j < trades; j++) {
                     const win = Math.random() < winrate; // Winst of verlies
                     if (win) {
-                        profit += riskReward; // Winst
+                        equity += equity * (riskReward / 100); // Winst
                     } else {
-                        profit -= 1; // Verlies
+                        equity -= equity * (1 / 100); // Verlies
+                    }
+                    equityCurve.push(equity); // Voeg de nieuwe equity toe aan de curve
+                }
+
+                allEquityCurves.push(equityCurve);
+            }
+            
+            // Toon de gemiddelde equity curve
+            let avgEquityCurve = Array(trades + 1).fill(0);
+            for (let i = 0; i < allEquityCurves.length; i++) {
+                for (let j = 0; j < allEquityCurves[i].length; j++) {
+                    avgEquityCurve[j] += allEquityCurves[i][j];
+                }
+            }
+            avgEquityCurve = avgEquityCurve.map(value => value / simulations); // Gemiddelde berekenen
+
+            // Toon de grafiek met de gemiddelde equity curve
+            const ctx = document.getElementById('equityCurve').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: trades + 1 }, (_, i) => i),
+                    datasets: [{
+                        label: 'Gemiddelde Equity Curve',
+                        data: avgEquityCurve,
+                        borderColor: '#d4af37',
+                        backgroundColor: 'rgba(212, 175, 55, 0.3)',
+                        fill: true,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Aantal Trades'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Account Waarde'
+                            }
+                        }
                     }
                 }
-                totalProfit += profit;
-            }
+            });
 
-            // Gemiddelde winst per simulatie
-            const averageProfit = totalProfit / simulations;
-            document.getElementById('result').textContent = `Gemiddelde Winst: ${averageProfit.toFixed(2)}`;
+            document.getElementById('result').textContent = 'Simulatie afgerond, kijk naar de grafiek voor de equity curve!';
         }
     </script>
 </body>
